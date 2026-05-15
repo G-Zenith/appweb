@@ -6,59 +6,108 @@ const requests = [
   { id: 5, unit: "9C", tenant: "—", issue: "Se necesita retoque de pintura", priority: "Baja", status: "Resuelta", date: "2026-05-08" },
 ];
 
+const maintenanceOverview = [
+  { label: "Abiertas", value: "02", detail: "Requieren asignación inmediata", tone: "accent" },
+  { label: "En progreso", value: "01", detail: "Visita técnica confirmada", tone: "light" },
+  { label: "Resueltas", value: "02", detail: "Cierre con seguimiento", tone: "dark" },
+];
+
 const priorityColors: Record<string, string> = {
-  Alta: "bg-red-100 text-red-700",
-  Media: "bg-yellow-100 text-yellow-700",
-  Baja: "bg-gray-100 text-gray-600",
+  Alta: "bg-rose-500/10 text-rose-700",
+  Media: "bg-amber-400/15 text-amber-700",
+  Baja: "bg-stone-900/10 text-stone-700",
 };
 
 const statusColors: Record<string, string> = {
-  Abierta: "bg-red-50 text-red-600",
-  "En progreso": "bg-blue-50 text-blue-600",
-  Resuelta: "bg-green-50 text-green-600",
+  Abierta: "bg-rose-500/10 text-rose-700",
+  "En progreso": "bg-sky-500/10 text-sky-700",
+  Resuelta: "bg-emerald-500/10 text-emerald-700",
 };
 
 export default function MaintenancePage() {
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Solicitudes de mantenimiento</h2>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
-          + Nueva solicitud
-        </button>
-      </div>
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              {["#", "Unidad", "Inquilino", "Incidencia", "Prioridad", "Estado", "Fecha"].map((h) => (
-                <th key={h} className="text-left px-4 py-3 font-medium text-gray-600">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {requests.map((r) => (
-              <tr key={r.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-400">{r.id}</td>
-                <td className="px-4 py-3 font-medium text-gray-900">{r.unit}</td>
-                <td className="px-4 py-3 text-gray-600">{r.tenant}</td>
-                <td className="px-4 py-3 text-gray-700">{r.issue}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[r.priority]}`}>
-                    {r.priority}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[r.status]}`}>
-                    {r.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-500">{r.date}</td>
+    <div className="space-y-6 text-stone-900">
+      <section className="rounded-[30px] border border-stone-900/10 bg-[linear-gradient(135deg,rgba(255,250,242,0.92),rgba(255,255,255,0.6))] p-6 shadow-[0_24px_90px_-46px_rgba(24,21,17,0.45)] sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl space-y-4">
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Respuesta operativa</p>
+            <h1 className="text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">Solicitudes de mantenimiento</h1>
+            <p className="max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
+              Panel de incidencias priorizadas para asignar técnicos, controlar SLA y no perder de vista ningún cierre.
+            </p>
+          </div>
+          <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5">
+            + Nueva solicitud
+          </button>
+        </div>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {maintenanceOverview.map((item) => (
+            <article
+              key={item.label}
+              className={`rounded-[26px] border p-5 ${
+                item.tone === "dark"
+                  ? "border-stone-950 bg-stone-950 text-stone-50"
+                  : item.tone === "accent"
+                    ? "border-rose-500/15 bg-rose-500/10 text-stone-900"
+                    : "border-stone-900/10 bg-white/80 text-stone-900"
+              }`}
+            >
+              <p className={`text-sm ${item.tone === "dark" ? "text-stone-300" : "text-stone-500"}`}>{item.label}</p>
+              <p className="mt-5 text-4xl font-semibold tracking-tight">{item.value}</p>
+              <p className={`mt-3 text-sm ${item.tone === "dark" ? "text-stone-300" : "text-stone-600"}`}>{item.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-[30px] border border-stone-900/10 bg-[color:var(--surface)] p-4 backdrop-blur sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Cola priorizada</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">Incidencias activas</h2>
+          </div>
+          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-stone-600 shadow-sm">
+            SLA medio: 28 min
+          </span>
+        </div>
+
+        <div className="mt-6 overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
+                {["Caso", "Unidad", "Incidencia", "Prioridad", "Estado", "Fecha"].map((heading) => (
+                  <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
+                    {heading}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-stone-900/10">
+              {requests.map((request) => (
+                <tr key={request.id} className="transition-colors hover:bg-white/55">
+                  <td className="px-4 py-4 text-stone-400 first:pl-0">#{request.id}</td>
+                  <td className="px-4 py-4">
+                    <p className="font-medium text-stone-950">{request.unit}</p>
+                    <p className="mt-1 text-xs text-stone-500">{request.tenant}</p>
+                  </td>
+                  <td className="px-4 py-4 text-stone-700">{request.issue}</td>
+                  <td className="px-4 py-4">
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${priorityColors[request.priority]}`}>
+                      {request.priority}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColors[request.status]}`}>
+                      {request.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 pr-0 text-stone-500">{request.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

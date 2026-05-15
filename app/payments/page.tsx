@@ -8,9 +8,9 @@ const payments = [
 ];
 
 const statusColors: Record<string, string> = {
-  Pagado: "bg-green-100 text-green-700",
-  Pendiente: "bg-yellow-100 text-yellow-700",
-  Vencido: "bg-red-100 text-red-700",
+  Pagado: "bg-emerald-500/10 text-emerald-700",
+  Pendiente: "bg-amber-400/15 text-amber-700",
+  Vencido: "bg-rose-500/10 text-rose-700",
 };
 
 export default function PaymentsPage() {
@@ -19,53 +19,86 @@ export default function PaymentsPage() {
   const outstanding = "$1,750";
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Pagos y facturas</h2>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
-          + Nueva factura
-        </button>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {[
-          { label: "Total facturado", value: total, color: "text-gray-900" },
-          { label: "Cobrado", value: collected, color: "text-green-600" },
-          { label: "Pendiente", value: outstanding, color: "text-red-600" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-sm text-gray-500">{s.label}</p>
-            <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+    <div className="space-y-6 text-stone-900">
+      <section className="rounded-[30px] border border-stone-900/10 bg-[linear-gradient(135deg,rgba(255,250,242,0.92),rgba(255,255,255,0.6))] p-6 shadow-[0_24px_90px_-46px_rgba(24,21,17,0.45)] sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl space-y-4">
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Pulso financiero</p>
+            <h1 className="text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">Pagos y facturas</h1>
+            <p className="max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
+              Visión más clara de cobros, vencimientos y facturación extraordinaria para tomar decisiones sin cambiar de contexto.
+            </p>
           </div>
-        ))}
-      </div>
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              {["Factura", "Unidad", "Inquilino", "Importe", "Tipo", "Estado", "Fecha"].map((h) => (
-                <th key={h} className="text-left px-4 py-3 font-medium text-gray-600">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {payments.map((p) => (
-              <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-gray-500">{p.id}</td>
-                <td className="px-4 py-3 font-medium text-gray-900">{p.unit}</td>
-                <td className="px-4 py-3 text-gray-600">{p.tenant}</td>
-                <td className="px-4 py-3 font-medium text-gray-900">{p.amount}</td>
-                <td className="px-4 py-3 text-gray-600">{p.type}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[p.status]}`}>
-                    {p.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-500">{p.date}</td>
+          <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5">
+            + Nueva factura
+          </button>
+        </div>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {[
+            { label: "Total facturado", value: total, detail: "Corte mensual", tone: "dark" },
+            { label: "Cobrado", value: collected, detail: "91% del objetivo", tone: "light" },
+            { label: "Pendiente", value: outstanding, detail: "Revisión prioritaria", tone: "accent" },
+          ].map((item) => (
+            <article
+              key={item.label}
+              className={`rounded-[26px] border p-5 ${
+                item.tone === "dark"
+                  ? "border-stone-950 bg-stone-950 text-stone-50"
+                  : item.tone === "accent"
+                    ? "border-amber-400/15 bg-amber-300/10 text-stone-900"
+                    : "border-stone-900/10 bg-white/80 text-stone-900"
+              }`}
+            >
+              <p className={`text-sm ${item.tone === "dark" ? "text-stone-300" : "text-stone-500"}`}>{item.label}</p>
+              <p className="mt-5 text-4xl font-semibold tracking-tight">{item.value}</p>
+              <p className={`mt-3 text-sm ${item.tone === "dark" ? "text-stone-300" : "text-stone-600"}`}>{item.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-[30px] border border-stone-900/10 bg-[color:var(--surface)] p-4 backdrop-blur sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Movimiento reciente</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">Facturación en seguimiento</h2>
+          </div>
+          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-stone-600 shadow-sm">
+            2 casos requieren atención
+          </span>
+        </div>
+
+        <div className="mt-6 overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
+                {["Factura", "Unidad", "Inquilino", "Importe", "Tipo", "Estado", "Fecha"].map((heading) => (
+                  <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
+                    {heading}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-stone-900/10">
+              {payments.map((payment) => (
+                <tr key={payment.id} className="transition-colors hover:bg-white/55">
+                  <td className="px-4 py-4 font-mono text-stone-500 first:pl-0">{payment.id}</td>
+                  <td className="px-4 py-4 font-medium text-stone-950">{payment.unit}</td>
+                  <td className="px-4 py-4 text-stone-600">{payment.tenant}</td>
+                  <td className="px-4 py-4 font-medium text-stone-900">{payment.amount}</td>
+                  <td className="px-4 py-4 text-stone-600">{payment.type}</td>
+                  <td className="px-4 py-4">
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColors[payment.status]}`}>
+                      {payment.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 pr-0 text-stone-500">{payment.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
