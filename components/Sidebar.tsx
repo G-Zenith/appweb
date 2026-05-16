@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+type SidebarProps = {
+  className?: string;
+  onNavigate?: () => void;
+};
+
 const navGroups = [
   {
     title: "Explorar",
@@ -26,11 +31,13 @@ const sidebarSignals = [
   { label: "Alertas", value: "05" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ className = "", onNavigate }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-full shrink-0 rounded-[30px] border border-white/10 bg-stone-950 px-4 py-4 text-stone-50 shadow-[0_28px_90px_-40px_rgba(15,23,42,0.85)] lg:w-[320px] lg:px-5 lg:py-5">
+    <aside
+      className={`w-full shrink-0 rounded-[30px] border border-white/10 bg-stone-950 px-4 py-4 text-stone-50 shadow-[0_28px_90px_-40px_rgba(15,23,42,0.85)] lg:w-[320px] lg:px-5 lg:py-5 ${className}`.trim()}
+    >
       <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur">
         <div className="flex items-center gap-4">
           <div className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-amber-300 via-orange-300 to-orange-500 font-mono text-base font-semibold text-stone-950">
@@ -53,7 +60,7 @@ export default function Sidebar() {
           ))}
         </div>
       </div>
-      <nav className="mt-6 space-y-6">
+      <nav aria-label="Navegación principal" className="mt-6 space-y-6">
         {navGroups.map((group) => (
           <div key={group.title}>
             <p className="mb-3 px-2 text-[11px] font-medium uppercase tracking-[0.24em] text-stone-500">
@@ -68,6 +75,7 @@ export default function Sidebar() {
                     key={item.href}
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
+                    onClick={onNavigate}
                     className={`group flex items-center gap-4 rounded-[22px] border px-3 py-3 transition-all ${
                       isActive
                         ? "border-white/5 bg-[color:var(--surface-strong)] text-stone-950 shadow-[0_20px_45px_-30px_rgba(249,115,22,0.75)]"
