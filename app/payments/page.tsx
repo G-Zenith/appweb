@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 import ActionToolbar from "@/components/management/ActionToolbar";
+import EmptyState from "@/components/management/EmptyState";
 import PageHero from "@/components/management/PageHero";
 import SectionHeader from "@/components/management/SectionHeader";
+import useDebouncedValue from "@/components/management/useDebouncedValue";
 
 const payments = [
   { id: "INV-001", unit: "3B", tenant: "Maria Garcia", amount: "$1,200", type: "Alquiler", status: "Pagado", date: "2026-05-01" },
@@ -27,19 +29,27 @@ export default function PaymentsPage() {
   const outstanding = "$1,750";
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
+  const debouncedStatusFilter = useDebouncedValue(statusFilter);
+  const isUpdating = searchQuery !== debouncedSearchQuery || statusFilter !== debouncedStatusFilter;
 
   const filteredPayments = payments.filter((payment) => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const normalizedQuery = debouncedSearchQuery.trim().toLowerCase();
     const matchesQuery =
       normalizedQuery.length === 0 ||
       payment.id.toLowerCase().includes(normalizedQuery) ||
       payment.unit.toLowerCase().includes(normalizedQuery) ||
       payment.tenant.toLowerCase().includes(normalizedQuery) ||
       payment.type.toLowerCase().includes(normalizedQuery);
-    const matchesStatus = statusFilter === "Todos" || payment.status === statusFilter;
+    const matchesStatus = debouncedStatusFilter === "Todos" || payment.status === debouncedStatusFilter;
 
     return matchesQuery && matchesStatus;
   });
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("Todos");
+  };
 
   return (
     <div className="space-y-6 text-stone-900">
@@ -76,38 +86,48 @@ export default function PaymentsPage() {
             onChange: setStatusFilter,
           }}
           actions={["Exportar", "Cobro masivo"]}
+          isUpdating={isUpdating}
         />
 
-        <div className="mt-6 overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
-                {["Factura", "Unidad", "Inquilino", "Importe", "Tipo", "Estado", "Fecha"].map((heading) => (
-                  <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-900/10">
-              {filteredPayments.map((payment) => (
-                <tr key={payment.id} className="transition-colors hover:bg-white/55">
-                  <td className="px-4 py-4 font-mono text-stone-500 first:pl-0">{payment.id}</td>
-                  <td className="px-4 py-4 font-medium text-stone-950">{payment.unit}</td>
-                  <td className="px-4 py-4 text-stone-600">{payment.tenant}</td>
-                  <td className="px-4 py-4 font-medium text-stone-900">{payment.amount}</td>
-                  <td className="px-4 py-4 text-stone-600">{payment.type}</td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColors[payment.status]}`}>
-                      {payment.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 pr-0 text-stone-500">{payment.date}</td>
+        {filteredPayments.length === 0 ? (
+          <EmptyState
+            title="Sin resultados para esta vista"
+            description="No hay movimientos que coincidan con la búsqueda actual. Restablece los filtros para revisar toda la facturación."
+            actionLabel="Limpiar filtros"
+            onAction={resetFilters}
+          />
+        ) : (
+          <div className="mt-6 overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
+                  {["Factura", "Unidad", "Inquilino", "Importe", "Tipo", "Estado", "Fecha"].map((heading) => (
+                    <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-stone-900/10">
+                {filteredPayments.map((payment) => (
+                  <tr key={payment.id} className="transition-colors hover:bg-white/55">
+                    <td className="px-4 py-4 font-mono text-stone-500 first:pl-0">{payment.id}</td>
+                    <td className="px-4 py-4 font-medium text-stone-950">{payment.unit}</td>
+                    <td className="px-4 py-4 text-stone-600">{payment.tenant}</td>
+                    <td className="px-4 py-4 font-medium text-stone-900">{payment.amount}</td>
+                    <td className="px-4 py-4 text-stone-600">{payment.type}</td>
+                    <td className="px-4 py-4">
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColors[payment.status]}`}>
+                        {payment.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 pr-0 text-stone-500">{payment.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

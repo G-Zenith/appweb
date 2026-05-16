@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 import ActionToolbar from "@/components/management/ActionToolbar";
+import EmptyState from "@/components/management/EmptyState";
 import PageHero from "@/components/management/PageHero";
 import SectionHeader from "@/components/management/SectionHeader";
+import useDebouncedValue from "@/components/management/useDebouncedValue";
 
 const tenants = [
   { id: 1, name: "Maria Garcia", initials: "MG", unit: "3B", email: "maria@example.com", phone: "555-0101", lease: "Ene 2024 - Ene 2025", status: "Activo" },
@@ -27,18 +29,26 @@ const statusColors: Record<string, string> = {
 export default function TenantsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
+  const debouncedStatusFilter = useDebouncedValue(statusFilter);
+  const isUpdating = searchQuery !== debouncedSearchQuery || statusFilter !== debouncedStatusFilter;
 
   const filteredTenants = tenants.filter((tenant) => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const normalizedQuery = debouncedSearchQuery.trim().toLowerCase();
     const matchesQuery =
       normalizedQuery.length === 0 ||
       tenant.name.toLowerCase().includes(normalizedQuery) ||
       tenant.unit.toLowerCase().includes(normalizedQuery) ||
       tenant.email.toLowerCase().includes(normalizedQuery);
-    const matchesStatus = statusFilter === "Todos" || tenant.status === statusFilter;
+    const matchesStatus = debouncedStatusFilter === "Todos" || tenant.status === debouncedStatusFilter;
 
     return matchesQuery && matchesStatus;
   });
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("Todos");
+  };
 
   return (
     <div className="space-y-6 text-stone-900">
@@ -71,49 +81,59 @@ export default function TenantsPage() {
             onChange: setStatusFilter,
           }}
           actions={["Exportar", "Resumen"]}
+          isUpdating={isUpdating}
         />
 
-        <div className="mt-6 overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
-                {["Residente", "Unidad", "Contacto", "Contrato", "Estado"].map((heading) => (
-                  <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-900/10">
-              {filteredTenants.map((tenant) => (
-                <tr key={tenant.id} className="transition-colors hover:bg-white/55">
-                  <td className="px-4 py-4 first:pl-0">
-                    <div className="flex items-center gap-3">
-                      <div className="grid size-11 place-items-center rounded-2xl bg-stone-950 text-sm font-medium text-white">
-                        {tenant.initials}
-                      </div>
-                      <div>
-                        <p className="font-medium text-stone-950">{tenant.name}</p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-400">Perfil activo</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-stone-700">{tenant.unit}</td>
-                  <td className="px-4 py-4">
-                    <p className="text-stone-700">{tenant.email}</p>
-                    <p className="mt-1 text-xs text-stone-500">{tenant.phone}</p>
-                  </td>
-                  <td className="px-4 py-4 text-stone-600">{tenant.lease}</td>
-                  <td className="px-4 py-4 pr-0">
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColors[tenant.status]}`}>
-                      {tenant.status}
-                    </span>
-                  </td>
+        {filteredTenants.length === 0 ? (
+          <EmptyState
+            title="Sin resultados para esta vista"
+            description="Prueba con otro término de búsqueda o restablece los filtros para volver a ver la cartera completa."
+            actionLabel="Limpiar filtros"
+            onAction={resetFilters}
+          />
+        ) : (
+          <div className="mt-6 overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
+                  {["Residente", "Unidad", "Contacto", "Contrato", "Estado"].map((heading) => (
+                    <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-stone-900/10">
+                {filteredTenants.map((tenant) => (
+                  <tr key={tenant.id} className="transition-colors hover:bg-white/55">
+                    <td className="px-4 py-4 first:pl-0">
+                      <div className="flex items-center gap-3">
+                        <div className="grid size-11 place-items-center rounded-2xl bg-stone-950 text-sm font-medium text-white">
+                          {tenant.initials}
+                        </div>
+                        <div>
+                          <p className="font-medium text-stone-950">{tenant.name}</p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-400">Perfil activo</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-stone-700">{tenant.unit}</td>
+                    <td className="px-4 py-4">
+                      <p className="text-stone-700">{tenant.email}</p>
+                      <p className="mt-1 text-xs text-stone-500">{tenant.phone}</p>
+                    </td>
+                    <td className="px-4 py-4 text-stone-600">{tenant.lease}</td>
+                    <td className="px-4 py-4 pr-0">
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColors[tenant.status]}`}>
+                        {tenant.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

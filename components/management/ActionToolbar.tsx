@@ -26,15 +26,22 @@ type ActionToolbarProps = {
   search: SearchConfig;
   filter: FilterConfig;
   actions: ToolbarAction[];
+  isUpdating?: boolean;
 };
 
-export default function ActionToolbar({ resultSummary, search, filter, actions }: ActionToolbarProps) {
+export default function ActionToolbar({ resultSummary, search, filter, actions, isUpdating = false }: ActionToolbarProps) {
   return (
     <>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-stone-600 shadow-sm">
           {resultSummary}
         </span>
+        {isUpdating ? (
+          <span className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-white shadow-sm">
+            <span className="size-2 rounded-full bg-emerald-300 animate-pulse" />
+            Actualizando vista...
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-6 flex flex-col gap-4 rounded-[26px] border border-stone-900/10 bg-white/70 p-4 lg:flex-row lg:items-end lg:justify-between">

@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 import ActionToolbar from "@/components/management/ActionToolbar";
+import EmptyState from "@/components/management/EmptyState";
 import PageHero from "@/components/management/PageHero";
 import SectionHeader from "@/components/management/SectionHeader";
+import useDebouncedValue from "@/components/management/useDebouncedValue";
 
 const units = [
   { id: "1A", floor: 1, type: "Estudio", area: "45 m²", tenant: "—", status: "Disponible" },
@@ -30,18 +32,26 @@ const statusColors: Record<string, string> = {
 export default function UnitsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todas");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
+  const debouncedStatusFilter = useDebouncedValue(statusFilter);
+  const isUpdating = searchQuery !== debouncedSearchQuery || statusFilter !== debouncedStatusFilter;
 
   const filteredUnits = units.filter((unit) => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const normalizedQuery = debouncedSearchQuery.trim().toLowerCase();
     const matchesQuery =
       normalizedQuery.length === 0 ||
       unit.id.toLowerCase().includes(normalizedQuery) ||
       unit.type.toLowerCase().includes(normalizedQuery) ||
       unit.tenant.toLowerCase().includes(normalizedQuery);
-    const matchesStatus = statusFilter === "Todas" || unit.status === statusFilter;
+    const matchesStatus = debouncedStatusFilter === "Todas" || unit.status === debouncedStatusFilter;
 
     return matchesQuery && matchesStatus;
   });
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("Todas");
+  };
 
   return (
     <div className="space-y-6 text-stone-900">
@@ -77,39 +87,49 @@ export default function UnitsPage() {
             { label: "Mapa", tone: "light" },
             { label: "Exportar", tone: "dark" },
           ]}
+          isUpdating={isUpdating}
         />
 
-        <div className="mt-6 overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
-                {["Unidad", "Piso", "Configuración", "Superficie", "Ocupación"].map((heading) => (
-                  <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-900/10">
-              {filteredUnits.map((unit) => (
-                <tr key={unit.id} className="transition-colors hover:bg-white/55">
-                  <td className="px-4 py-4 font-medium text-stone-950 first:pl-0">{unit.id}</td>
-                  <td className="px-4 py-4 text-stone-600">{unit.floor}</td>
-                  <td className="px-4 py-4 text-stone-700">{unit.type}</td>
-                  <td className="px-4 py-4 text-stone-600">{unit.area}</td>
-                  <td className="px-4 py-4 pr-0">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${statusColors[unit.status]}`}>
-                        {unit.status}
-                      </span>
-                      <span className="text-sm text-stone-500">{unit.tenant}</span>
-                    </div>
-                  </td>
+        {filteredUnits.length === 0 ? (
+          <EmptyState
+            title="Sin resultados para esta vista"
+            description="Ajusta la búsqueda o el estado para recuperar unidades activas dentro del inventario visible."
+            actionLabel="Limpiar filtros"
+            onAction={resetFilters}
+          />
+        ) : (
+          <div className="mt-6 overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
+                  {["Unidad", "Piso", "Configuración", "Superficie", "Ocupación"].map((heading) => (
+                    <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-stone-900/10">
+                {filteredUnits.map((unit) => (
+                  <tr key={unit.id} className="transition-colors hover:bg-white/55">
+                    <td className="px-4 py-4 font-medium text-stone-950 first:pl-0">{unit.id}</td>
+                    <td className="px-4 py-4 text-stone-600">{unit.floor}</td>
+                    <td className="px-4 py-4 text-stone-700">{unit.type}</td>
+                    <td className="px-4 py-4 text-stone-600">{unit.area}</td>
+                    <td className="px-4 py-4 pr-0">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${statusColors[unit.status]}`}>
+                          {unit.status}
+                        </span>
+                        <span className="text-sm text-stone-500">{unit.tenant}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

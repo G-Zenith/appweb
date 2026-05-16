@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 import ActionToolbar from "@/components/management/ActionToolbar";
+import EmptyState from "@/components/management/EmptyState";
 import PageHero from "@/components/management/PageHero";
 import SectionHeader from "@/components/management/SectionHeader";
+import useDebouncedValue from "@/components/management/useDebouncedValue";
 
 const requests = [
   { id: 1, unit: "12A", tenant: "John Doe", issue: "Grifo con fuga en la cocina", priority: "Alta", status: "Abierta", date: "2026-05-14" },
@@ -35,18 +37,26 @@ const statusColors: Record<string, string> = {
 export default function MaintenancePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("Todas");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
+  const debouncedPriorityFilter = useDebouncedValue(priorityFilter);
+  const isUpdating = searchQuery !== debouncedSearchQuery || priorityFilter !== debouncedPriorityFilter;
 
   const filteredRequests = requests.filter((request) => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const normalizedQuery = debouncedSearchQuery.trim().toLowerCase();
     const matchesQuery =
       normalizedQuery.length === 0 ||
       request.unit.toLowerCase().includes(normalizedQuery) ||
       request.tenant.toLowerCase().includes(normalizedQuery) ||
       request.issue.toLowerCase().includes(normalizedQuery);
-    const matchesPriority = priorityFilter === "Todas" || request.priority === priorityFilter;
+    const matchesPriority = debouncedPriorityFilter === "Todas" || request.priority === debouncedPriorityFilter;
 
     return matchesQuery && matchesPriority;
   });
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setPriorityFilter("Todas");
+  };
 
   return (
     <div className="space-y-6 text-stone-900">
@@ -79,44 +89,54 @@ export default function MaintenancePage() {
             onChange: setPriorityFilter,
           }}
           actions={["Exportar", "Asignar técnico"]}
+          isUpdating={isUpdating}
         />
 
-        <div className="mt-6 overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
-                {["Caso", "Unidad", "Incidencia", "Prioridad", "Estado", "Fecha"].map((heading) => (
-                  <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-900/10">
-              {filteredRequests.map((request) => (
-                <tr key={request.id} className="transition-colors hover:bg-white/55">
-                  <td className="px-4 py-4 text-stone-400 first:pl-0">#{request.id}</td>
-                  <td className="px-4 py-4">
-                    <p className="font-medium text-stone-950">{request.unit}</p>
-                    <p className="mt-1 text-xs text-stone-500">{request.tenant}</p>
-                  </td>
-                  <td className="px-4 py-4 text-stone-700">{request.issue}</td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${priorityColors[request.priority]}`}>
-                      {request.priority}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColors[request.status]}`}>
-                      {request.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 pr-0 text-stone-500">{request.date}</td>
+        {filteredRequests.length === 0 ? (
+          <EmptyState
+            title="Sin resultados para esta vista"
+            description="Amplía el rango de prioridad o modifica la búsqueda para volver a mostrar solicitudes activas."
+            actionLabel="Limpiar filtros"
+            onAction={resetFilters}
+          />
+        ) : (
+          <div className="mt-6 overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-900/10 text-left text-[11px] uppercase tracking-[0.22em] text-stone-500">
+                  {["Caso", "Unidad", "Incidencia", "Prioridad", "Estado", "Fecha"].map((heading) => (
+                    <th key={heading} className="px-4 py-4 font-medium first:pl-0 last:pr-0">
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-stone-900/10">
+                {filteredRequests.map((request) => (
+                  <tr key={request.id} className="transition-colors hover:bg-white/55">
+                    <td className="px-4 py-4 text-stone-400 first:pl-0">#{request.id}</td>
+                    <td className="px-4 py-4">
+                      <p className="font-medium text-stone-950">{request.unit}</p>
+                      <p className="mt-1 text-xs text-stone-500">{request.tenant}</p>
+                    </td>
+                    <td className="px-4 py-4 text-stone-700">{request.issue}</td>
+                    <td className="px-4 py-4">
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${priorityColors[request.priority]}`}>
+                        {request.priority}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColors[request.status]}`}>
+                        {request.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 pr-0 text-stone-500">{request.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );
