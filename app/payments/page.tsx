@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 const payments = [
   { id: "INV-001", unit: "3B", tenant: "Maria Garcia", amount: "$1,200", type: "Alquiler", status: "Pagado", date: "2026-05-01" },
   { id: "INV-002", unit: "7A", tenant: "James Wilson", amount: "$950", type: "Alquiler", status: "Pagado", date: "2026-05-01" },
@@ -17,6 +21,21 @@ export default function PaymentsPage() {
   const total = "$5,650";
   const collected = "$3,900";
   const outstanding = "$1,750";
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Todos");
+
+  const filteredPayments = payments.filter((payment) => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesQuery =
+      normalizedQuery.length === 0 ||
+      payment.id.toLowerCase().includes(normalizedQuery) ||
+      payment.unit.toLowerCase().includes(normalizedQuery) ||
+      payment.tenant.toLowerCase().includes(normalizedQuery) ||
+      payment.type.toLowerCase().includes(normalizedQuery);
+    const matchesStatus = statusFilter === "Todos" || payment.status === statusFilter;
+
+    return matchesQuery && matchesStatus;
+  });
 
   return (
     <div className="space-y-6 text-stone-900">
@@ -64,8 +83,51 @@ export default function PaymentsPage() {
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">Facturación en seguimiento</h2>
           </div>
           <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-stone-600 shadow-sm">
-            2 casos requieren atención
+            Mostrando {filteredPayments.length} de {payments.length} movimientos
           </span>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 rounded-[26px] border border-stone-900/10 bg-white/70 p-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,0.7fr)]">
+            <div className="space-y-2">
+              <label htmlFor="payment-search" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                Buscar factura
+              </label>
+              <input
+                id="payment-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Factura, unidad, inquilino o tipo"
+                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="payment-status-filter" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                Filtrar estado de facturas
+              </label>
+              <select
+                id="payment-status-filter"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
+              >
+                {["Todos", "Pagado", "Pendiente", "Vencido"].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button className="rounded-full border border-stone-900/10 bg-white px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-stone-600 transition hover:-translate-y-0.5 hover:text-stone-950">
+              Exportar
+            </button>
+            <button className="rounded-full bg-stone-950 px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5">
+              Cobro masivo
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 overflow-x-auto">
@@ -80,7 +142,7 @@ export default function PaymentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-900/10">
-              {payments.map((payment) => (
+              {filteredPayments.map((payment) => (
                 <tr key={payment.id} className="transition-colors hover:bg-white/55">
                   <td className="px-4 py-4 font-mono text-stone-500 first:pl-0">{payment.id}</td>
                   <td className="px-4 py-4 font-medium text-stone-950">{payment.unit}</td>

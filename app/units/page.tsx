@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 const units = [
   { id: "1A", floor: 1, type: "Estudio", area: "45 m²", tenant: "—", status: "Disponible" },
   { id: "2B", floor: 2, type: "1 dormitorio", area: "60 m²", tenant: "Carlos Reyes", status: "Ocupada" },
@@ -20,6 +24,21 @@ const statusColors: Record<string, string> = {
 };
 
 export default function UnitsPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Todas");
+
+  const filteredUnits = units.filter((unit) => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesQuery =
+      normalizedQuery.length === 0 ||
+      unit.id.toLowerCase().includes(normalizedQuery) ||
+      unit.type.toLowerCase().includes(normalizedQuery) ||
+      unit.tenant.toLowerCase().includes(normalizedQuery);
+    const matchesStatus = statusFilter === "Todas" || unit.status === statusFilter;
+
+    return matchesQuery && matchesStatus;
+  });
+
   return (
     <div className="space-y-6 text-stone-900">
       <section className="rounded-[30px] border border-stone-900/10 bg-[linear-gradient(135deg,rgba(255,250,242,0.92),rgba(255,255,255,0.6))] p-6 shadow-[0_24px_90px_-46px_rgba(24,21,17,0.45)] sm:p-8">
@@ -62,8 +81,51 @@ export default function UnitsPage() {
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">Inventario por unidad</h2>
           </div>
           <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-stone-600 shadow-sm">
-            7 unidades visibles
+            Mostrando {filteredUnits.length} de {units.length} unidades
           </span>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 rounded-[26px] border border-stone-900/10 bg-white/70 p-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,0.7fr)]">
+            <div className="space-y-2">
+              <label htmlFor="unit-search" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                Buscar unidad
+              </label>
+              <input
+                id="unit-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Código, tipología o inquilino"
+                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="unit-status-filter" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                Filtrar estado de unidades
+              </label>
+              <select
+                id="unit-status-filter"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
+              >
+                {["Todas", "Ocupada", "Disponible"].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button className="rounded-full border border-stone-900/10 bg-white px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-stone-600 transition hover:-translate-y-0.5 hover:text-stone-950">
+              Mapa
+            </button>
+            <button className="rounded-full bg-stone-950 px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5">
+              Exportar
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 overflow-x-auto">
@@ -78,7 +140,7 @@ export default function UnitsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-900/10">
-              {units.map((unit) => (
+              {filteredUnits.map((unit) => (
                 <tr key={unit.id} className="transition-colors hover:bg-white/55">
                   <td className="px-4 py-4 font-medium text-stone-950 first:pl-0">{unit.id}</td>
                   <td className="px-4 py-4 text-stone-600">{unit.floor}</td>

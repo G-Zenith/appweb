@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 const requests = [
   { id: 1, unit: "12A", tenant: "John Doe", issue: "Grifo con fuga en la cocina", priority: "Alta", status: "Abierta", date: "2026-05-14" },
   { id: 2, unit: "3B", tenant: "Maria Garcia", issue: "Pestillo de ventana roto", priority: "Media", status: "En progreso", date: "2026-05-12" },
@@ -25,6 +29,21 @@ const statusColors: Record<string, string> = {
 };
 
 export default function MaintenancePage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("Todas");
+
+  const filteredRequests = requests.filter((request) => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesQuery =
+      normalizedQuery.length === 0 ||
+      request.unit.toLowerCase().includes(normalizedQuery) ||
+      request.tenant.toLowerCase().includes(normalizedQuery) ||
+      request.issue.toLowerCase().includes(normalizedQuery);
+    const matchesPriority = priorityFilter === "Todas" || request.priority === priorityFilter;
+
+    return matchesQuery && matchesPriority;
+  });
+
   return (
     <div className="space-y-6 text-stone-900">
       <section className="rounded-[30px] border border-stone-900/10 bg-[linear-gradient(135deg,rgba(255,250,242,0.92),rgba(255,255,255,0.6))] p-6 shadow-[0_24px_90px_-46px_rgba(24,21,17,0.45)] sm:p-8">
@@ -67,8 +86,51 @@ export default function MaintenancePage() {
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">Incidencias activas</h2>
           </div>
           <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-stone-600 shadow-sm">
-            SLA medio: 28 min
+            {filteredRequests.length} casos visibles · SLA medio: 28 min
           </span>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 rounded-[26px] border border-stone-900/10 bg-white/70 p-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,0.7fr)]">
+            <div className="space-y-2">
+              <label htmlFor="maintenance-search" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                Buscar incidencia
+              </label>
+              <input
+                id="maintenance-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Unidad, inquilino o incidencia"
+                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="maintenance-priority-filter" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                Filtrar prioridad
+              </label>
+              <select
+                id="maintenance-priority-filter"
+                value={priorityFilter}
+                onChange={(event) => setPriorityFilter(event.target.value)}
+                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
+              >
+                {["Todas", "Alta", "Media", "Baja"].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button className="rounded-full border border-stone-900/10 bg-white px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-stone-600 transition hover:-translate-y-0.5 hover:text-stone-950">
+              Exportar
+            </button>
+            <button className="rounded-full bg-stone-950 px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5">
+              Asignar técnico
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 overflow-x-auto">
@@ -83,7 +145,7 @@ export default function MaintenancePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-900/10">
-              {requests.map((request) => (
+              {filteredRequests.map((request) => (
                 <tr key={request.id} className="transition-colors hover:bg-white/55">
                   <td className="px-4 py-4 text-stone-400 first:pl-0">#{request.id}</td>
                   <td className="px-4 py-4">

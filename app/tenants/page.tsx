@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 const tenants = [
   { id: 1, name: "Maria Garcia", initials: "MG", unit: "3B", email: "maria@example.com", phone: "555-0101", lease: "Ene 2024 - Ene 2025", status: "Activo" },
   { id: 2, name: "James Wilson", initials: "JW", unit: "7A", email: "james@example.com", phone: "555-0102", lease: "Mar 2024 - Mar 2025", status: "Activo" },
@@ -17,6 +21,21 @@ const statusColors: Record<string, string> = {
 };
 
 export default function TenantsPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Todos");
+
+  const filteredTenants = tenants.filter((tenant) => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesQuery =
+      normalizedQuery.length === 0 ||
+      tenant.name.toLowerCase().includes(normalizedQuery) ||
+      tenant.unit.toLowerCase().includes(normalizedQuery) ||
+      tenant.email.toLowerCase().includes(normalizedQuery);
+    const matchesStatus = statusFilter === "Todos" || tenant.status === statusFilter;
+
+    return matchesQuery && matchesStatus;
+  });
+
   return (
     <div className="space-y-6 text-stone-900">
       <section className="rounded-[30px] border border-stone-900/10 bg-[linear-gradient(135deg,rgba(255,250,242,0.92),rgba(255,255,255,0.6))] p-6 shadow-[0_24px_90px_-46px_rgba(24,21,17,0.45)] sm:p-8">
@@ -59,8 +78,51 @@ export default function TenantsPage() {
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">Seguimiento por residente</h2>
           </div>
           <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-stone-600 shadow-sm">
-            4 perfiles destacados
+            Mostrando {filteredTenants.length} de {tenants.length} perfiles
           </span>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 rounded-[26px] border border-stone-900/10 bg-white/70 p-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,0.7fr)]">
+            <div className="space-y-2">
+              <label htmlFor="tenant-search" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                Buscar inquilino
+              </label>
+              <input
+                id="tenant-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Nombre, unidad o correo"
+                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="tenant-status-filter" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                Filtrar estado
+              </label>
+              <select
+                id="tenant-status-filter"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
+              >
+                {["Todos", "Activo", "Por vencer"].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button className="rounded-full border border-stone-900/10 bg-white px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-stone-600 transition hover:-translate-y-0.5 hover:text-stone-950">
+              Exportar
+            </button>
+            <button className="rounded-full bg-stone-950 px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5">
+              Resumen
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 overflow-x-auto">
@@ -75,7 +137,7 @@ export default function TenantsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-900/10">
-              {tenants.map((tenant) => (
+              {filteredTenants.map((tenant) => (
                 <tr key={tenant.id} className="transition-colors hover:bg-white/55">
                   <td className="px-4 py-4 first:pl-0">
                     <div className="flex items-center gap-3">
