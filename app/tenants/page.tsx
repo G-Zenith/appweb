@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 
+import ActionToolbar from "@/components/management/ActionToolbar";
+import PageHero from "@/components/management/PageHero";
+import SectionHeader from "@/components/management/SectionHeader";
+
 const tenants = [
   { id: 1, name: "Maria Garcia", initials: "MG", unit: "3B", email: "maria@example.com", phone: "555-0101", lease: "Ene 2024 - Ene 2025", status: "Activo" },
   { id: 2, name: "James Wilson", initials: "JW", unit: "7A", email: "james@example.com", phone: "555-0102", lease: "Mar 2024 - Mar 2025", status: "Activo" },
@@ -38,92 +42,36 @@ export default function TenantsPage() {
 
   return (
     <div className="space-y-6 text-stone-900">
-      <section className="rounded-[30px] border border-stone-900/10 bg-[linear-gradient(135deg,rgba(255,250,242,0.92),rgba(255,255,255,0.6))] p-6 shadow-[0_24px_90px_-46px_rgba(24,21,17,0.45)] sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl space-y-4">
-            <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Relación con residentes</p>
-            <h1 className="text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">Inquilinos</h1>
-            <p className="max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
-              Vista editorial para contratos activos, renovaciones próximas y seguimiento del vínculo con cada residente.
-            </p>
-          </div>
-          <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5">
-            + Agregar inquilino
-          </button>
-        </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {tenantOverview.map((item) => (
-            <article
-              key={item.label}
-              className={`rounded-[26px] border p-5 ${
-                item.tone === "dark"
-                  ? "border-stone-950 bg-stone-950 text-stone-50"
-                  : item.tone === "accent"
-                    ? "border-amber-400/20 bg-amber-300/10 text-stone-900"
-                    : "border-stone-900/10 bg-white/80 text-stone-900"
-              }`}
-            >
-              <p className={`text-sm ${item.tone === "dark" ? "text-stone-300" : "text-stone-500"}`}>{item.label}</p>
-              <p className="mt-5 text-4xl font-semibold tracking-tight">{item.value}</p>
-              <p className={`mt-3 text-sm ${item.tone === "dark" ? "text-stone-300" : "text-stone-600"}`}>{item.detail}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Relación con residentes"
+        title="Inquilinos"
+        description="Vista editorial para contratos activos, renovaciones próximas y seguimiento del vínculo con cada residente."
+        actionLabel="+ Agregar inquilino"
+        metrics={tenantOverview}
+      />
 
       <section className="rounded-[30px] border border-stone-900/10 bg-[color:var(--surface)] p-4 backdrop-blur sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Cartera activa</p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">Seguimiento por residente</h2>
-          </div>
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-stone-600 shadow-sm">
-            Mostrando {filteredTenants.length} de {tenants.length} perfiles
-          </span>
+          <SectionHeader eyebrow="Cartera activa" title="Seguimiento por residente" />
         </div>
-
-        <div className="mt-6 flex flex-col gap-4 rounded-[26px] border border-stone-900/10 bg-white/70 p-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,0.7fr)]">
-            <div className="space-y-2">
-              <label htmlFor="tenant-search" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
-                Buscar inquilino
-              </label>
-              <input
-                id="tenant-search"
-                type="search"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Nombre, unidad o correo"
-                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="tenant-status-filter" className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
-                Filtrar estado
-              </label>
-              <select
-                id="tenant-status-filter"
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                className="w-full rounded-2xl border border-stone-900/10 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-950/30"
-              >
-                {["Todos", "Activo", "Por vencer"].map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button className="rounded-full border border-stone-900/10 bg-white px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-stone-600 transition hover:-translate-y-0.5 hover:text-stone-950">
-              Exportar
-            </button>
-            <button className="rounded-full bg-stone-950 px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5">
-              Resumen
-            </button>
-          </div>
-        </div>
+        <ActionToolbar
+          resultSummary={`Mostrando ${filteredTenants.length} de ${tenants.length} perfiles`}
+          search={{
+            id: "tenant-search",
+            label: "Buscar inquilino",
+            placeholder: "Nombre, unidad o correo",
+            value: searchQuery,
+            onChange: setSearchQuery,
+          }}
+          filter={{
+            id: "tenant-status-filter",
+            label: "Filtrar estado",
+            value: statusFilter,
+            options: ["Todos", "Activo", "Por vencer"],
+            onChange: setStatusFilter,
+          }}
+          actions={["Exportar", "Resumen"]}
+        />
 
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full text-sm">
